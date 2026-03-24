@@ -1,46 +1,97 @@
-import React, { useState } from 'react'
-import Copyright from './components/Copyright.js'
-import Navbar from './components/Navbar.js'
-import Home from './pages/home.js'
-import { Route, BrowserRouter, Routes } from 'react-router-dom';
-import AdministracionProductos from './pages/administracion_productos.js'
-import Promociones from './pages/promociones.js'
-import { PrecioCartaContext, PrecioPromocionesContext } from './helpers/Context.js'
-import { tablaProductos, tablaPromociones } from './utils/TablaProductos.js'
-import './App.css';
+import React, { useState, useEffect } from "react";
+import Copyright from "./components/Copyright.js";
+import Navbar from "./components/Navbar.js";
+import ProtectedRoute from "./components/Redirect/ProtectedRoute.js";
+import HomeRedirect from "./components/Redirect/HomeRedirect.js";
+import Home from "./pages/home.js";
+import { Route, BrowserRouter, Routes } from "react-router-dom";
+import AdministracionProductos from "./pages/administracion_productos.js";
+import Promociones from "./pages/promociones.js";
+import {
+  PrecioPromocionesContext,
+  LogueadoContext,
+} from "./helpers/Context.js";
+import { tablaPromociones } from "./utils/TablaProductos.js";
+import "./App.css";
+import Login from "./pages/login.js";
 
 const App = () => {
-
-  const [precioCarta, setPrecioCarta] = useState(tablaProductos);
   const [precioPromociones, setPrecioPromociones] = useState(tablaPromociones);
+  const [isLogged, setIsLogged] = useState(false);
 
-  const carta = { precioCarta, setPrecioCarta }
-  const promos = { precioPromociones, setPrecioPromociones }
+  const promos = { precioPromociones, setPrecioPromociones };
+  const logueado = { isLogged, setIsLogged };
+
+  useEffect(() => {
+    if (localStorage.getItem("token") && localStorage.getItem("email")) {
+      setIsLogged(true);
+    } else {
+      setIsLogged(false);
+    }
+  });
+
   return (
     <PrecioPromocionesContext.Provider value={promos}>
-      <PrecioCartaContext.Provider value={carta}>
+      <LogueadoContext.Provider value={logueado}>
         <BrowserRouter>
           <div className="App">
-            <Navbar />
+            {isLogged && <Navbar />}
             <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/administracion-productos" element={<AdministracionProductos />} />
-              <Route path="/promociones" element={<Promociones />} />
-              <Route path="*" element={<Home />} />
+              <Route
+                path="/home"
+                element={
+                  <ProtectedRoute>
+                    <Home setIsLogged={setIsLogged} />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/administracion-productos"
+                element={
+                  <ProtectedRoute>
+                    <AdministracionProductos />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/promociones"
+                element={
+                  <ProtectedRoute>
+                    <Promociones />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/login"
+                element={
+                  <HomeRedirect>
+                    <Login />
+                  </HomeRedirect>
+                }
+              />
+              <Route
+                path="/"
+                element={
+                  <HomeRedirect>
+                    <Login />
+                  </HomeRedirect>
+                }
+              />
+              <Route
+                path="*"
+                element={
+                  <ProtectedRoute>
+                    <Home setIsLogged={setIsLogged} />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
-            <Copyright />
+            {isLogged && <Copyright />}
           </div>
-        </BrowserRouter >
-      </PrecioCartaContext.Provider>
+        </BrowserRouter>
+      </LogueadoContext.Provider>
     </PrecioPromocionesContext.Provider>
-  )
-}
+  );
+};
 
-export default App
-
-
-
-
-
-
-
+export default App;
