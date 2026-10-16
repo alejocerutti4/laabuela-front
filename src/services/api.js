@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const url = "https://laabuela-api.fly.dev/api/v1/";
+const defaultUrl = "https://laabuela-api.vercel.app/api/v1/";
+const envUrl = process.env.REACT_APP_API_URL;
+const url = envUrl ? (envUrl.endsWith("/") ? envUrl : `${envUrl}/`) : defaultUrl;
 
 const getAllProductos = async () => {
     const token = localStorage.getItem("token");
